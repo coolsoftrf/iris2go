@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="flag_size">50dp</dimen>
+    <dimen name="swap_size">30dp</dimen>
+    <dimen name="indent">10dp</dimen>
+</resources>

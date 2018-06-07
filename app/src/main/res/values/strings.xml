@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">IRIS-to-go</string>
+    <string name="translate_from">Перевод с</string>
+    <string name="description_translate_from">Translate from</string>
+    <string name="translate_to">на</string>
+    <string name="input_hint">Enter a word</string>
+    <string name="nekudot">Огласовки</string>
+    <string name="transcript">Транскрипция</string>
+</resources>
