@@ -9,5 +9,9 @@ public interface Api {
 
     @FormUrlEncoded
     @POST(ENDPOINT_TRANSLATE)
-    Call<ResponseDto> translate(@Body RequestDto request);
+    Call<ResponseDto> translate(
+            @Field(value = Config.ARG_XAJAX) String xajax
+            , @Field(value = Config.ARG_XAJAXR) long xajaxr
+            , @Field(value = Config.ARG_ARGS) String args
+    );
 }

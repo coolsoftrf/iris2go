@@ -1,20 +1,23 @@
 package ru.coolsoft.iris2go;
 
+import android.os.Bundle;
 import android.support.annotation.DrawableRes;
+import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.text.Spanned;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.util.*;
+import java.util.Objects;
 
+import retrofit2.*;
 import ru.coolsoft.iris2go.rest.Engine;
+import ru.coolsoft.iris2go.rest.ResponseDto;
 
+import static android.view.KeyEvent.ACTION_UP;
 import static android.view.View.NO_ID;
 
 public class MainActivity extends AppCompatActivity {
@@ -40,15 +43,31 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.input).setOnKeyListener(new View.OnKeyListener() {
             @Override
             public boolean onKey(View v, int keyCode, KeyEvent event) {
-                if (keyCode == 66){
+                if (keyCode == 66 && event.getAction() == ACTION_UP) {
                     CharSequence text = ((TextView)v).getText();
-                    Spanned result = Engine.translate(text.toString(),
+                    Engine.translate(text.toString(),
                             mLangFrom.mLang,
                             text.charAt(0) > 'А' && text.charAt(0) < 'я',
                             findViewById(R.id.transcript).isSelected(),
-                            findViewById(R.id.nekudot).isSelected()
-                            );
-                    ((TextView)findViewById(R.id.result)).setText(result);
+                            findViewById(R.id.nekudot).isSelected(),
+
+                            new Callback<ResponseDto>() {
+                                @Override
+                                public void onResponse(@NonNull Call<ResponseDto> call, @NonNull Response<ResponseDto> response) {
+                                    ResponseDto dto = response.body();
+                                    //format Html.fromHtml(dto.cmd[1].text);
+
+                                    ((TextView)findViewById(R.id.result)).setText(Objects.requireNonNull(dto).cmd.get(1).text);
+                                }
+
+                                @Override
+                                public void onFailure(@NonNull Call<ResponseDto> call, @NonNull Throwable t) {
+                                    t.printStackTrace();
+
+                                    ((TextView)findViewById(R.id.result)).setText(t.getMessage());
+                                }
+                            }
+                    );
                     return true;
                 }
                 return false;
