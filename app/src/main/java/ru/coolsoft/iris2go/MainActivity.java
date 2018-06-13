@@ -9,6 +9,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import java.util.Objects;
@@ -40,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
         ActionBar actionBar = Objects.requireNonNull(getSupportActionBar());
         actionBar.setIcon(R.drawable.logo);
 
-        findViewById(R.id.input).setOnKeyListener(new View.OnKeyListener() {
+        Objects.requireNonNull(findViewById(R.id.input)).setOnKeyListener(new View.OnKeyListener() {
             @Override
             public boolean onKey(View v, int keyCode, KeyEvent event) {
                 if (keyCode == 66 && event.getAction() == ACTION_UP) {
@@ -48,8 +49,8 @@ public class MainActivity extends AppCompatActivity {
                     Engine.translate(text.toString(),
                             mLangFrom.mLang,
                             text.charAt(0) > 'А' && text.charAt(0) < 'я',
-                            findViewById(R.id.transcript).isSelected(),
-                            findViewById(R.id.nekudot).isSelected(),
+                            ((Switch) Objects.requireNonNull(findViewById(R.id.transcript))).isChecked(),
+                            ((Switch) Objects.requireNonNull(findViewById(R.id.nekudot))).isChecked(),
 
                             new Callback<ResponseDto>() {
                                 @Override
@@ -57,14 +58,14 @@ public class MainActivity extends AppCompatActivity {
                                     ResponseDto dto = response.body();
                                     //format Html.fromHtml(dto.cmd[1].text);
 
-                                    ((TextView)findViewById(R.id.result)).setText(Objects.requireNonNull(dto).cmd.get(1).text);
+                                    ((TextView) Objects.requireNonNull(findViewById(R.id.result))).setText(Objects.requireNonNull(dto).cmd.get(1).text);
                                 }
 
                                 @Override
                                 public void onFailure(@NonNull Call<ResponseDto> call, @NonNull Throwable t) {
                                     t.printStackTrace();
 
-                                    ((TextView)findViewById(R.id.result)).setText(t.getMessage());
+                                    ((TextView) Objects.requireNonNull(findViewById(R.id.result))).setText(t.getMessage());
                                 }
                             }
                     );
@@ -79,8 +80,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateLangs() {
         Lang langTo = get2ndParty(DEFAULT_LANG_PAIR);
-        ((ImageView)findViewById(R.id.flag_from)).setImageResource(mLangFrom.mIcon);
-        ((ImageView)findViewById(R.id.flag_to)).setImageResource(langTo.mIcon);
+        ((ImageView) Objects.requireNonNull(findViewById(R.id.flag_from))).setImageResource(mLangFrom.mIcon);
+        ((ImageView) Objects.requireNonNull(findViewById(R.id.flag_to))).setImageResource(langTo.mIcon);
     }
 
     @Override
