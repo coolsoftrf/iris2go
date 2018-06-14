@@ -6,13 +6,12 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Html;
 import android.view.KeyEvent;
 import android.view.View;
-import android.widget.ImageView;
-import android.widget.Switch;
-import android.widget.TextView;
+import android.widget.*;
 
-import java.util.Objects;
+import java.util.*;
 
 import retrofit2.*;
 import ru.coolsoft.iris2go.rest.Engine;
@@ -26,7 +25,41 @@ public class MainActivity extends AppCompatActivity {
     private static final Lang DEFAULT_LANG_FROM = Lang.RUS;
     private static final Lang DEFAULT_LANG_PAIR = Lang.HEB_RUS;
 
+    public static final Map<String, String> STYLING = new HashMap<String, String>() {{
+        put("class=\"splitter\">", "style=\"" +
+//               "    height: 2px;" +
+//               "    background-color: #ff0000;" +
+                "    text-align: center;" +
+                "\">*   *   *");
+        put("class=\"cycle1\"", "style=\"" +
+                "    background-color: #ffffff;" +
+                "    padding: 5px;" +
+                "\"");
+        put("class=\"word\"", "style=\"" +
+                "    font-weight: bold;" +
+                "    color: #000;" +
+                "\"");
+        put("class=\"translit\"", "style=\"" +
+                "    font-weight: bold;" +
+                "    color: #009900;" +
+                "\"");
+        put("class=\"translitaccent\"", "style=\"" +
+                "    color: #ff0000;" +
+                "\"");
+        put("class=\"rtl\"", "style=\"" +
+                "    direction: rtl;" +
+                "    text-align: right;" +
+                "\"");
+        put("class=\"wordaccent\"", "style=\"" +
+                "    color: #ff0000;" +
+                "\"");
+    }};
+
     private Lang mLangFrom = DEFAULT_LANG_FROM;
+    private TextView mInput;
+    private TextView mResult;
+    private Switch mTranscript;
+    private Switch mNekudot;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,41 +74,66 @@ public class MainActivity extends AppCompatActivity {
         ActionBar actionBar = Objects.requireNonNull(getSupportActionBar());
         actionBar.setIcon(R.drawable.logo);
 
+        mInput = findViewById(R.id.input);
+        mResult = findViewById(R.id.result);
         Objects.requireNonNull(findViewById(R.id.input)).setOnKeyListener(new View.OnKeyListener() {
             @Override
             public boolean onKey(View v, int keyCode, KeyEvent event) {
                 if (keyCode == 66 && event.getAction() == ACTION_UP) {
-                    CharSequence text = ((TextView)v).getText();
-                    Engine.translate(text.toString(),
-                            mLangFrom.mLang,
-                            text.charAt(0) > 'А' && text.charAt(0) < 'я',
-                            ((Switch) Objects.requireNonNull(findViewById(R.id.transcript))).isChecked(),
-                            ((Switch) Objects.requireNonNull(findViewById(R.id.nekudot))).isChecked(),
-
-                            new Callback<ResponseDto>() {
-                                @Override
-                                public void onResponse(@NonNull Call<ResponseDto> call, @NonNull Response<ResponseDto> response) {
-                                    ResponseDto dto = response.body();
-                                    //format Html.fromHtml(dto.cmd[1].text);
-
-                                    ((TextView) Objects.requireNonNull(findViewById(R.id.result))).setText(Objects.requireNonNull(dto).cmd.get(1).text);
-                                }
-
-                                @Override
-                                public void onFailure(@NonNull Call<ResponseDto> call, @NonNull Throwable t) {
-                                    t.printStackTrace();
-
-                                    ((TextView) Objects.requireNonNull(findViewById(R.id.result))).setText(t.getMessage());
-                                }
-                            }
-                    );
+                    translate();
                     return true;
                 }
                 return false;
             }
         });
 
+        mTranscript = findViewById(R.id.transcript);
+        mNekudot = findViewById(R.id.nekudot);
+        CompoundButton.OnCheckedChangeListener checkedChangeListener = new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                translate();
+            }
+        };
+        mTranscript.setOnCheckedChangeListener(checkedChangeListener);
+        mNekudot.setOnCheckedChangeListener(checkedChangeListener);
+
         updateLangs();
+    }
+
+    private void translate() {
+        CharSequence text = mInput.getText();
+
+        //ToDo: add char range to lang definition
+        if (mLangFrom == Lang.RUS && text.charAt(0) > 'я') {
+            onSwap(null);
+        }
+        Engine.translate(text.toString(),
+                mLangFrom.mLang,
+                text.charAt(0) >= 'А' && text.charAt(0) <= 'я',
+                mTranscript.isChecked(),
+                mNekudot.isChecked(),
+
+                new Callback<ResponseDto>() {
+                    @Override
+                    public void onResponse(@NonNull Call<ResponseDto> call, @NonNull Response<ResponseDto> response) {
+                        ResponseDto dto = response.body();
+                        String text = Objects.requireNonNull(dto).cmd.get(1).text;
+                        for (Map.Entry<String, String> pattern : STYLING.entrySet()) {
+                            text = text.replace(pattern.getKey(), pattern.getValue());
+                        }
+
+                        mResult.setText(Html.fromHtml(text));
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Call<ResponseDto> call, @NonNull Throwable t) {
+                        t.printStackTrace();
+
+                        mResult.setText(t.getMessage());
+                    }
+                }
+        );
     }
 
     private void updateLangs() {

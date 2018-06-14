@@ -85,16 +85,19 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/transcript"
-        app:layout_constraintTop_toBottomOf="@id/nekudot"/>
+        app:layout_constraintTop_toBottomOf="@id/nekudot"
+        android:visibility="gone" />
 
     <EditText
         android:id="@+id/result"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:inputType="none"
+        android:editable="false"
+        android:textIsSelectable="true"
         app:layout_constraintTop_toBottomOf="@+id/transcript"
         app:layout_constraintBottom_toBottomOf="parent"
         tools:text="line1\nline2"
-        tools:ignore="LabelFor" />
+        tools:ignore="Deprecated,LabelFor" />
 
 </android.support.constraint.ConstraintLayout>
