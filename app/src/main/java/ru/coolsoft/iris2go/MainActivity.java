@@ -6,9 +6,9 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.Html;
 import android.view.KeyEvent;
 import android.view.View;
+import android.webkit.WebView;
 import android.widget.*;
 
 import java.util.*;
@@ -27,12 +27,16 @@ public class MainActivity extends AppCompatActivity {
 
     public static final Map<String, String> STYLING = new HashMap<String, String>() {{
         put("class=\"splitter\">", "style=\"" +
-//               "    height: 2px;" +
-//               "    background-color: #ff0000;" +
+                "    height: 2px;" +
+                "    background-color: #ff0000;" +
                 "    text-align: center;" +
-                "\">*   *   *");
+                "\">");
         put("class=\"cycle1\"", "style=\"" +
                 "    background-color: #ffffff;" +
+                "    padding: 5px;" +
+                "\"");
+        put("class=\"cycle-1\"", "style=\"" +
+                "    background-color: #f1f1f1;" +
                 "    padding: 5px;" +
                 "\"");
         put("class=\"word\"", "style=\"" +
@@ -57,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Lang mLangFrom = DEFAULT_LANG_FROM;
     private TextView mInput;
-    private TextView mResult;
+    private WebView mResult;
     private Switch mTranscript;
     private Switch mNekudot;
 
@@ -123,14 +127,14 @@ public class MainActivity extends AppCompatActivity {
                             text = text.replace(pattern.getKey(), pattern.getValue());
                         }
 
-                        mResult.setText(Html.fromHtml(text));
+                        mResult.loadDataWithBaseURL(null, text, "text/html; charset=utf-8", "UTF-8", null);
                     }
 
                     @Override
                     public void onFailure(@NonNull Call<ResponseDto> call, @NonNull Throwable t) {
                         t.printStackTrace();
 
-                        mResult.setText(t.getMessage());
+                        mResult.loadDataWithBaseURL(null, t.getMessage(), "text/html", null, null);
                     }
                 }
         );

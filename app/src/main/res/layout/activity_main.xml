@@ -4,7 +4,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="@dimen/indent"
     tools:context=".MainActivity">
 
     <android.support.v7.widget.Toolbar
@@ -69,6 +68,7 @@
         android:id="@+id/input"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_margin="@dimen/indent"
         app:layout_constraintTop_toBottomOf="@id/txt_from"
         android:hint="@string/input_hint"
         android:inputType="text"/>
@@ -77,6 +77,7 @@
         android:id="@+id/nekudot"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_margin="@dimen/indent"
         android:text="@string/nekudot"
         app:layout_constraintTop_toBottomOf="@id/input"/>
 
@@ -84,20 +85,16 @@
         android:id="@+id/transcript"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_margin="@dimen/indent"
         android:text="@string/transcript"
         app:layout_constraintTop_toBottomOf="@id/nekudot"
         android:visibility="gone" />
 
-    <EditText
+    <WebView
         android:id="@+id/result"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:inputType="none"
-        android:editable="false"
-        android:textIsSelectable="true"
         app:layout_constraintTop_toBottomOf="@+id/transcript"
-        app:layout_constraintBottom_toBottomOf="parent"
-        tools:text="line1\nline2"
-        tools:ignore="Deprecated,LabelFor" />
+        app:layout_constraintBottom_toBottomOf="parent" />
 
 </android.support.constraint.ConstraintLayout>
