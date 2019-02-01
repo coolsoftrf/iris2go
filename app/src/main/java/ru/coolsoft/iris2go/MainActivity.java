@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Pair;
 import android.view.KeyEvent;
 import android.view.View;
 import android.webkit.WebView;
@@ -60,6 +61,9 @@ public class MainActivity extends AppCompatActivity {
     }};
 
     private Lang mLangFrom = DEFAULT_LANG_FROM;
+    private ArrayList<Pair<Lang, String>> mHistory = new ArrayList<>();
+    private int mHistoryHeadIndex;
+
     private TextView mInput;
     private WebView mResult;
     private Switch mTranscript;
@@ -70,11 +74,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if (savedInstanceState != null){
+        if (savedInstanceState != null) {
             mLangFrom = Lang.valueOf(savedInstanceState.getInt(KEY_LANG, DEFAULT_LANG_FROM.mLang));
         }
 
-        setSupportActionBar((Toolbar)findViewById(R.id.toolbar));
+        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
         ActionBar actionBar = Objects.requireNonNull(getSupportActionBar());
         actionBar.setIcon(R.drawable.logo);
 
@@ -84,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onKey(View v, int keyCode, KeyEvent event) {
                 if (keyCode == 66 && event.getAction() == ACTION_UP) {
-                    translate();
+                    translate(true);
                     return true;
                 }
                 return false;
@@ -96,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
         CompoundButton.OnCheckedChangeListener checkedChangeListener = new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                translate();
+                translate(true);
             }
         };
         mTranscript.setOnCheckedChangeListener(checkedChangeListener);
@@ -105,12 +109,33 @@ public class MainActivity extends AppCompatActivity {
         updateLangs();
     }
 
-    private void translate() {
+    @Override
+    public void onBackPressed() {
+        if (mHistoryHeadIndex < 2) {
+            super.onBackPressed();
+            return;
+        }
+
+        Pair<Lang, String> polledItem = mHistory.get(--mHistoryHeadIndex - 1);
+        mLangFrom = polledItem.first;
+        updateLangs();
+        mInput.setText(polledItem.second);
+
+        translate(false);
+    }
+
+    private void translate(boolean updateHistory) {
         CharSequence text = mInput.getText();
 
         //ToDo: add char range to lang definition
         if (mLangFrom == Lang.RUS && text.charAt(0) > 'я') {
             onSwap(null);
+        }
+        if (updateHistory) {
+            Pair<Lang, String> historyItem = new Pair<>(mLangFrom, text.toString());
+            if (mHistoryHeadIndex == 0 || !historyItem.equals(mHistory.get(mHistoryHeadIndex - 1))) {
+                mHistory.add(mHistoryHeadIndex++, historyItem);
+            }
         }
         Engine.translate(text.toString(),
                 mLangFrom.mLang,
@@ -157,24 +182,24 @@ public class MainActivity extends AppCompatActivity {
         updateLangs();
     }
 
-    private Lang get2ndParty(Lang pair){
+    private Lang get2ndParty(Lang pair) {
         return Lang.valueOf(pair.mLang - mLangFrom.mLang);
     }
 
-    private enum Lang{
-        HEB (1, R.drawable.flag_isr),
-        RUS (2, R.drawable.flag_rus),
-        HEB_RUS (3, NO_ID);
+    private enum Lang {
+        HEB(1, R.drawable.flag_isr),
+        RUS(2, R.drawable.flag_rus),
+        HEB_RUS(3, NO_ID);
         /*ENG = 4*/
         /*ENG_HEB = 5*/
         /*ENG_RUS = 6*/
 
-        Lang(int langId, @DrawableRes int iconResId){
+        Lang(int langId, @DrawableRes int iconResId) {
             mLang = langId;
             mIcon = iconResId;
         }
 
-        static Lang valueOf(int langId){
+        static Lang valueOf(int langId) {
             return values()[langId - 1];
         }
 
