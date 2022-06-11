@@ -1,20 +1,27 @@
 package ru.coolsoft.iris2go;
 
 import android.os.Bundle;
-import android.support.annotation.DrawableRes;
-import android.support.annotation.NonNull;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Pair;
-import android.view.KeyEvent;
 import android.view.View;
 import android.webkit.WebView;
-import android.widget.*;
+import android.widget.CompoundButton;
+import android.widget.ImageView;
+import android.widget.Switch;
+import android.widget.TextView;
 
-import java.util.*;
+import androidx.annotation.DrawableRes;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
 
-import retrofit2.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 import ru.coolsoft.iris2go.rest.Engine;
 import ru.coolsoft.iris2go.rest.ResponseDto;
 
@@ -60,8 +67,8 @@ public class MainActivity extends AppCompatActivity {
                 "\"");
     }};
 
+    private final ArrayList<Pair<Lang, String>> mHistory = new ArrayList<>();
     private Lang mLangFrom = DEFAULT_LANG_FROM;
-    private ArrayList<Pair<Lang, String>> mHistory = new ArrayList<>();
     private int mHistoryHeadIndex;
 
     private TextView mInput;
@@ -78,31 +85,26 @@ public class MainActivity extends AppCompatActivity {
             mLangFrom = Lang.valueOf(savedInstanceState.getInt(KEY_LANG, DEFAULT_LANG_FROM.mLang));
         }
 
-        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
+        setSupportActionBar(findViewById(R.id.toolbar));
         ActionBar actionBar = Objects.requireNonNull(getSupportActionBar());
         actionBar.setIcon(R.drawable.logo);
 
         mInput = findViewById(R.id.input);
         mResult = findViewById(R.id.result);
-        Objects.requireNonNull(findViewById(R.id.input)).setOnKeyListener(new View.OnKeyListener() {
-            @Override
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-                if (keyCode == 66 && event.getAction() == ACTION_UP) {
-                    translate(true);
-                    return true;
+        Objects.requireNonNull((View) findViewById(R.id.input)).setOnKeyListener(
+                (v, keyCode, event) -> {
+                    if (keyCode == 66 && event.getAction() == ACTION_UP) {
+                        translate(true);
+                        return true;
+                    }
+                    return false;
                 }
-                return false;
-            }
-        });
+        );
 
         mTranscript = findViewById(R.id.transcript);
         mNekudot = findViewById(R.id.nekudot);
-        CompoundButton.OnCheckedChangeListener checkedChangeListener = new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                translate(true);
-            }
-        };
+        CompoundButton.OnCheckedChangeListener checkedChangeListener =
+                (buttonView, isChecked) -> translate(true);
         mTranscript.setOnCheckedChangeListener(checkedChangeListener);
         mNekudot.setOnCheckedChangeListener(checkedChangeListener);
 
@@ -137,6 +139,8 @@ public class MainActivity extends AppCompatActivity {
                 mHistory.add(mHistoryHeadIndex++, historyItem);
             }
         }
+
+        findViewById(R.id.loader).setVisibility(View.VISIBLE);
         Engine.translate(text.toString(),
                 mLangFrom.mLang,
                 text.charAt(0) >= 'А' && text.charAt(0) <= 'я',
@@ -144,6 +148,10 @@ public class MainActivity extends AppCompatActivity {
                 mNekudot.isChecked(),
 
                 new Callback<ResponseDto>() {
+                    private void doFinally() {
+                        findViewById(R.id.loader).setVisibility(View.GONE);
+                    }
+
                     @Override
                     public void onResponse(@NonNull Call<ResponseDto> call, @NonNull Response<ResponseDto> response) {
                         ResponseDto dto = response.body();
@@ -153,6 +161,7 @@ public class MainActivity extends AppCompatActivity {
                         }
 
                         mResult.loadDataWithBaseURL(null, text, "text/html; charset=utf-8", "UTF-8", null);
+                        doFinally();
                     }
 
                     @Override
@@ -160,30 +169,31 @@ public class MainActivity extends AppCompatActivity {
                         t.printStackTrace();
 
                         mResult.loadDataWithBaseURL(null, t.getMessage(), "text/html", null, null);
+                        doFinally();
                     }
                 }
         );
     }
 
     private void updateLangs() {
-        Lang langTo = get2ndParty(DEFAULT_LANG_PAIR);
-        ((ImageView) Objects.requireNonNull(findViewById(R.id.flag_from))).setImageResource(mLangFrom.mIcon);
-        ((ImageView) Objects.requireNonNull(findViewById(R.id.flag_to))).setImageResource(langTo.mIcon);
+        Lang langTo = get2ndParty();
+        ((ImageView) Objects.requireNonNull((View) findViewById(R.id.flag_from))).setImageResource(mLangFrom.mIcon);
+        ((ImageView) Objects.requireNonNull((View) findViewById(R.id.flag_to))).setImageResource(langTo.mIcon);
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putInt(KEY_LANG, mLangFrom.mLang);
     }
 
     public void onSwap(View view) {
-        mLangFrom = get2ndParty(DEFAULT_LANG_PAIR);
+        mLangFrom = get2ndParty();
         updateLangs();
     }
 
-    private Lang get2ndParty(Lang pair) {
-        return Lang.valueOf(pair.mLang - mLangFrom.mLang);
+    private Lang get2ndParty() {
+        return Lang.valueOf(MainActivity.DEFAULT_LANG_PAIR.mLang - mLangFrom.mLang);
     }
 
     private enum Lang {
