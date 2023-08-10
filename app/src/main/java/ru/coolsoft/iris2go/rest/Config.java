@@ -1,7 +1,7 @@
 package ru.coolsoft.iris2go.rest;
 
 class Config {
-    static final String SERVER = "https://slovar.co.il/";
+    static final String SERVER = "https://www.slovar.co.il/";
     static final String ENDPOINT_TRANSLATE = "txajax.php";
 
     static final String ARG_XAJAX = "xajax";
